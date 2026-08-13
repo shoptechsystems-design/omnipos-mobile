@@ -1,48 +1,24 @@
-import { ScrollView, Text, View, TouchableOpacity } from "react-native";
-
+import { useMemo, useState } from "react";
+import { FlatList, Image, Pressable, RefreshControl, Text, TextInput, View } from "react-native";
+import { router } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import { ScreenContainer } from "@/components/screen-container";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useColors } from "@/hooks/use-colors";
+import { portal } from "@/lib/portal";
+import { money } from "@/shared/omnipos";
+import { useCart } from "@/lib/cart-context";
 
-/**
- * Home Screen - NativeWind Example
- *
- * This template uses NativeWind (Tailwind CSS for React Native).
- * You can use familiar Tailwind classes directly in className props.
- *
- * Key patterns:
- * - Use `className` instead of `style` for most styling
- * - Theme colors: use tokens directly (bg-background, text-foreground, bg-primary, etc.); no dark: prefix needed
- * - Responsive: standard Tailwind breakpoints work on web
- * - Custom colors defined in tailwind.config.js
- */
-export default function HomeScreen() {
-  return (
-    <ScreenContainer className="p-6">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View className="flex-1 gap-8">
-          {/* Hero Section */}
-          <View className="items-center gap-2">
-            <Text className="text-4xl font-bold text-foreground">Welcome</Text>
-            <Text className="text-base text-muted text-center">
-              Edit app/(tabs)/index.tsx to get started
-            </Text>
-          </View>
-
-          {/* Example Card */}
-          <View className="w-full max-w-sm self-center bg-surface rounded-2xl p-6 shadow-sm border border-border">
-            <Text className="text-lg font-semibold text-foreground mb-2">NativeWind Ready</Text>
-            <Text className="text-sm text-muted leading-relaxed">
-              Use Tailwind CSS classes directly in your React Native components.
-            </Text>
-          </View>
-
-          {/* Example Button */}
-          <View className="items-center">
-            <TouchableOpacity className="bg-primary px-6 py-3 rounded-full active:opacity-80">
-              <Text className="text-background font-semibold">Get Started</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
-    </ScreenContainer>
-  );
+export default function SellScreen() {
+  const colors = useColors(); const cart = useCart(); const [search, setSearch] = useState(""); const [categoryId, setCategoryId] = useState<number | undefined>();
+  const products = useQuery({ queryKey: ["products", search, categoryId], queryFn: () => portal.products({ search: search || undefined, categoryId }) });
+  const categories = useQuery({ queryKey: ["categories"], queryFn: portal.categories });
+  const data = useMemo(() => products.data ?? [], [products.data]);
+  return <ScreenContainer className="px-4 pt-3" edges={["top", "left", "right"]}>
+    <View className="flex-row items-center justify-between mb-3"><View><Text className="text-3xl font-bold text-foreground">OmniPOS</Text><Text className="text-sm text-muted">Sell from your live catalog</Text></View><View className="w-11 h-11 rounded-full bg-tealLight items-center justify-center"><IconSymbol name="bell.fill" size={22} color={colors.primary} /></View></View>
+    <View className="flex-row items-center rounded-2xl border border-border bg-surface px-3 h-12 mb-3"><IconSymbol name="search.fill" size={22} color={colors.muted} /><TextInput value={search} onChangeText={setSearch} placeholder="Search products or scan barcode" placeholderTextColor={colors.muted} className="flex-1 ml-2 text-base text-foreground" returnKeyType="search" /><IconSymbol name="barcode.viewfinder" size={24} color={colors.muted} /></View>
+    <FlatList horizontal showsHorizontalScrollIndicator={false} data={[{ id: undefined, name: "All", color: colors.primary }, ...(categories.data ?? [])]} keyExtractor={(item) => String(item.id ?? "all")} contentContainerStyle={{ gap: 8, paddingBottom: 14 }} renderItem={({ item }) => <Pressable onPress={() => setCategoryId(item.id)} style={({ pressed }) => [{ paddingHorizontal: 15, paddingVertical: 9, borderRadius: 18, backgroundColor: categoryId === item.id || (!categoryId && !item.id) ? colors.primary : colors.surface, borderWidth: 1, borderColor: categoryId === item.id || (!categoryId && !item.id) ? colors.primary : colors.border }, pressed && { opacity: 0.7 }]}><Text style={{ color: categoryId === item.id || (!categoryId && !item.id) ? "#fff" : colors.foreground, fontWeight: "600" }}>{item.name}</Text></Pressable>} />
+    <FlatList data={data} numColumns={2} keyExtractor={(item) => String(item.id)} columnWrapperStyle={{ gap: 12 }} contentContainerStyle={{ gap: 12, paddingBottom: cart.itemCount ? 104 : 24 }} refreshControl={<RefreshControl refreshing={products.isFetching} onRefresh={() => products.refetch()} tintColor={colors.primary} />} ListEmptyComponent={<View className="items-center py-16"><Text className="text-base text-muted">{products.isLoading ? "Loading live products…" : "No products found"}</Text></View>} renderItem={({ item }) => <Pressable onPress={() => cart.add(item)} style={({ pressed }) => [{ flex: 1, minHeight: 236, borderRadius: 18, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, padding: 10 }, pressed && { opacity: 0.72, transform: [{ scale: 0.98 }] }]}><View className="h-32 rounded-xl bg-background overflow-hidden items-center justify-center mb-2">{item.imageUrl ? <Image source={{ uri: item.imageUrl }} className="w-full h-full" resizeMode="cover" /> : <IconSymbol name="package" size={46} color={colors.muted} />}</View><Text className="font-semibold text-foreground" numberOfLines={1}>{item.name}</Text><Text className="text-xs text-muted mt-1">SKU: {item.sku}</Text><View className="flex-row items-center justify-between mt-2"><Text className="text-xs" style={{ color: item.stock > 0 ? colors.primary : colors.error }}>{item.stock > 0 ? `${item.stock} in stock` : "Out of stock"}</Text><Text className="font-bold text-foreground">{money(item.price)}</Text></View></Pressable>} />
+    {cart.itemCount > 0 && <Pressable onPress={() => router.push("/checkout")} style={({ pressed }) => [{ position: "absolute", left: 16, right: 16, bottom: 12, height: 68, borderRadius: 22, backgroundColor: colors.primary, flexDirection: "row", alignItems: "center", paddingHorizontal: 16, shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 12, elevation: 5 }, pressed && { opacity: 0.9 }]}><View className="w-11 h-11 rounded-full bg-white/20 items-center justify-center"><IconSymbol name="cart.fill" size={24} color="#fff" /></View><View className="flex-1 ml-3"><Text className="text-white font-semibold">{cart.itemCount} {cart.itemCount === 1 ? "item" : "items"}</Text><Text className="text-white/80 text-xs">Ready to review order</Text></View><Text className="text-white text-lg font-bold mr-2">{money(cart.total)}</Text><IconSymbol name="chevron.right" size={24} color="#fff" /></Pressable>}
+  </ScreenContainer>;
 }
