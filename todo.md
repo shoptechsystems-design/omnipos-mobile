@@ -18,3 +18,7 @@
 - [ ] Save final checkpoint and document known validation limits
 - [x] Fix preview sign-in submission, portal authentication response handling, and session routing
 - [x] Add deterministic sign-in regression coverage for success, invalid credentials, and network failure states
+- [x] Verify mobile API base URL and route coverage against the exact live OmniPOS portal
+- [x] Document any live portal routes not yet represented in mobile navigation or client actions
+- [x] Fix customer list synchronization so mobile matches the live portal tenant records
+- [x] Validate customer query, session cookie forwarding, and tenant context in preview
