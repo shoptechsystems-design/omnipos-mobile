@@ -58,6 +58,32 @@ async function startServer() {
   registerStorageProxy(app);
   registerOAuthRoutes(app);
 
+  // Same-origin proxy for the external OmniPOS portal. This is required by the web preview
+  // because the portal does not expose browser CORS headers for credentialed requests.
+  app.use("/api/portal/trpc", async (req, res, next) => {
+    try {
+      const target = `https://omnipos-hjcb6uyk.manus.space/api/trpc${req.originalUrl.replace(/^\/api\/portal\/trpc/, "")}`;
+      const response = await fetch(target, {
+        method: req.method,
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          ...(req.headers.cookie ? { Cookie: req.headers.cookie } : {}),
+        },
+        body: req.method === "GET" || req.method === "HEAD" ? undefined : JSON.stringify(req.body ?? {}),
+      });
+      const setCookie = response.headers.get("set-cookie");
+      if (setCookie) {
+        res.setHeader("set-cookie", setCookie.split(/,(?=[^;]+?=)/).map((cookie) => cookie.replace(/;?\s*Domain=[^;]+/gi, "").replace(/;?\s*Secure/gi, "")));
+      }
+      res.status(response.status);
+      res.setHeader("content-type", response.headers.get("content-type") ?? "application/json");
+      res.send(await response.text());
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true, timestamp: Date.now() });
   });

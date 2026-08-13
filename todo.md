@@ -16,3 +16,5 @@
 - [x] Add deterministic tests for contract mapping and cart/checkout calculations
 - [x] Run typecheck, lint, tests, and visual/runtime verification
 - [ ] Save final checkpoint and document known validation limits
+- [x] Fix preview sign-in submission, portal authentication response handling, and session routing
+- [x] Add deterministic sign-in regression coverage for success, invalid credentials, and network failure states
