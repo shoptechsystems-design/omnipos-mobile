@@ -15,10 +15,18 @@
 - [x] Add error, empty, loading, retry, and session-expired states
 - [x] Add deterministic tests for contract mapping and cart/checkout calculations
 - [x] Run typecheck, lint, tests, and visual/runtime verification
-- [ ] Save final checkpoint and document known validation limits
+- [x] Save final checkpoint and document known validation limits
 - [x] Fix preview sign-in submission, portal authentication response handling, and session routing
 - [x] Add deterministic sign-in regression coverage for success, invalid credentials, and network failure states
 - [x] Verify mobile API base URL and route coverage against the exact live OmniPOS portal
 - [x] Document any live portal routes not yet represented in mobile navigation or client actions
 - [x] Fix customer list synchronization so mobile matches the live portal tenant records
 - [x] Validate customer query, session cookie forwarding, and tenant context in preview
+- [x] Verify authenticated mobile preview data with the user-provided tenant-admin account
+- [x] Compare mobile Customers, Products, Inventory, and tenant context with portal records
+- [x] Fix authenticated session persistence from auth.login into tenant.context and protected portal routes
+- [x] Validate authenticated Customers, Products, Inventory, and tenant data after mobile login
+- [x] Fix remaining `Please login (10001)` after portal login by preserving the authenticated session across protected requests
+- [x] Re-test login, tenant context, and Customers data after the session-cookie handoff fix
+- [x] Fix post-login Sell crash when live portal product price fields are missing or differently named
+- [x] Re-validate Sell rendering and Customers data after the product normalization fix

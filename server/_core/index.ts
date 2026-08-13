@@ -6,6 +6,8 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
+import { parse as parseCookieHeader } from "cookie";
+import { getSessionCookieOptions } from "./cookies";
 import { createContext } from "./context";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -58,17 +60,42 @@ async function startServer() {
   registerStorageProxy(app);
   registerOAuthRoutes(app);
 
+  // Establish a local preview session backed by the portal's httpOnly session cookie.
+  // The browser only stores the local bridge cookie; the remote cookie never crosses into JS.
+  app.post("/api/portal/session/login", async (req, res, next) => {
+    try {
+      const response = await fetch("https://omnipos-hjcb6uyk.manus.space/api/trpc/auth.login", {
+        method: "POST",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ json: req.body ?? {} }),
+      });
+      const body = await response.text();
+      const setCookies = typeof (response.headers as Headers & { getSetCookie?: () => string[] }).getSetCookie === "function"
+        ? (response.headers as Headers & { getSetCookie: () => string[] }).getSetCookie()
+        : (response.headers.get("set-cookie") ? [response.headers.get("set-cookie") as string] : []);
+      const remoteCookie = setCookies.map((value) => value.match(/(?:^|;)\s*app_session_id=([^;]+)/)?.[1]).find(Boolean);
+      if (response.ok && remoteCookie) {
+        res.cookie("omnipos_portal_session", encodeURIComponent(remoteCookie), { ...getSessionCookieOptions(req), maxAge: 86400000 });
+      }
+      res.status(response.status).type("application/json").send(body);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Same-origin proxy for the external OmniPOS portal. This is required by the web preview
   // because the portal does not expose browser CORS headers for credentialed requests.
   app.use("/api/portal/trpc", async (req, res, next) => {
     try {
       const target = `https://omnipos-hjcb6uyk.manus.space/api/trpc${req.originalUrl.replace(/^\/api\/portal\/trpc/, "")}`;
+      const bridgeCookie = parseCookieHeader(req.headers.cookie ?? "").omnipos_portal_session;
+      const forwardedCookie = bridgeCookie ? `app_session_id=${decodeURIComponent(bridgeCookie)}` : req.headers.cookie;
       const response = await fetch(target, {
         method: req.method,
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          ...(req.headers.cookie ? { Cookie: req.headers.cookie } : {}),
+          ...(forwardedCookie ? { Cookie: forwardedCookie } : {}),
         },
         body: req.method === "GET" || req.method === "HEAD" ? undefined : JSON.stringify(req.body ?? {}),
       });

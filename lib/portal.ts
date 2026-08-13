@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import { getApiBaseUrl } from "@/constants/oauth";
-import type { Category, CheckoutResult, Customer, CustomerGroup, InventoryItem, Membership, Product, Sale, Tenant, User } from "@/shared/omnipos";
+import { numeric, type Category, type CheckoutResult, type Customer, type CustomerGroup, type InventoryItem, type Membership, type Product, type Sale, type Tenant, type User } from "@/shared/omnipos";
 
 export const PORTAL_ORIGIN = "https://omnipos-hjcb6uyk.manus.space";
 const API_BASE = Platform.OS === "web" ? `${getApiBaseUrl()}/api/portal/trpc` : `${PORTAL_ORIGIN}/api/trpc`;
@@ -54,11 +54,38 @@ async function request<T>(path: string, input?: unknown, method: "GET" | "POST" 
   return (payload?.result?.data?.json ?? payload?.result?.data ?? payload) as T;
 }
 
+async function login(input: { email: string; password: string }) {
+  if (Platform.OS !== "web") return request<{ success: true; user: User }>("auth.login", input, "POST");
+  const response = await fetch(`${getApiBaseUrl()}/api/portal/session/login`, { method: "POST", credentials: "include", headers: { Accept: "application/json", "Content-Type": "application/json" }, body: JSON.stringify({ email: input.email, password: input.password }) });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok || payload?.error) {
+    const error = payload?.error as TRPCError & { json?: { message?: string } } | undefined;
+    throw new Error(error?.message ?? error?.json?.message ?? `Portal request failed (${response.status})`);
+  }
+  return (payload?.result?.data?.json ?? payload?.result?.data ?? payload) as { success: true; user: User };
+}
+
+function normalizeProduct(value: Record<string, unknown>): Product {
+  return {
+    id: numeric(value.id),
+    name: String(value.name ?? value.title ?? "Unnamed product"),
+    sku: String(value.sku ?? value.code ?? "—"),
+    barcode: value.barcode == null ? null : String(value.barcode),
+    price: numeric(value.price ?? value.sellingPrice ?? value.salePrice ?? value.retailPrice ?? value.unitPrice),
+    stock: numeric(value.stock ?? value.stockQuantity ?? value.quantity ?? value.inventory),
+    categoryId: value.categoryId == null ? null : numeric(value.categoryId),
+    imageUrl: value.imageUrl == null && value.image == null ? null : String(value.imageUrl ?? value.image),
+  };
+}
+
 export const portal = {
-  login: (input: { email: string; password: string }) => request<{ success: true; user: User }>("auth.login", input, "POST"),
+  login,
   me: () => request<User | null>("auth.me"),
   tenantContext: () => request<{ tenant: Tenant; membership: Membership }>("tenant.context"),
-  products: (input?: { search?: string; categoryId?: number }) => request<Product[]>("catalog.products", input ?? {}),
+  products: async (input?: { search?: string; categoryId?: number }) => {
+    const values = await request<unknown[]>("catalog.products", input ?? {});
+    return (Array.isArray(values) ? values : []).map((value) => normalizeProduct((value ?? {}) as Record<string, unknown>));
+  },
   categories: () => request<Category[]>("catalog.categories"),
   customers: (input?: { search?: string }) => request<Customer[]>("customers.list", input ?? {}),
   createCustomer: (input: { name: string; email?: string | null; phone?: string | null; groupId?: number | null }) => request<Customer>("customers.create", input, "POST"),

@@ -59,4 +59,9 @@ export type CheckoutResult = {
   loyaltyPointsEarned: number;
 };
 
-export const money = (value: number) => `Rs${value.toLocaleString("en-PK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export const numeric = (value: unknown, fallback = 0) => {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+export const money = (value: unknown) => `Rs${numeric(value).toLocaleString("en-PK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
