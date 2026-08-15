@@ -65,6 +65,14 @@ async function login(input: { email: string; password: string }) {
   return (payload?.result?.data?.json ?? payload?.result?.data ?? payload) as { success: true; user: User };
 }
 
+function normalizeImageUrl(value: unknown) {
+  if (value == null) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  if (raw.startsWith("data:") || raw.startsWith("blob:") || raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+  return `${PORTAL_ORIGIN}${raw.startsWith("/") ? "" : "/"}${raw}`;
+}
+
 function normalizeProduct(value: Record<string, unknown>): Product {
   return {
     id: numeric(value.id),
@@ -74,7 +82,7 @@ function normalizeProduct(value: Record<string, unknown>): Product {
     price: numeric(value.price ?? value.sellingPrice ?? value.salePrice ?? value.retailPrice ?? value.unitPrice),
     stock: numeric(value.stock ?? value.stockQuantity ?? value.quantity ?? value.inventory),
     categoryId: value.categoryId == null ? null : numeric(value.categoryId),
-    imageUrl: value.imageUrl == null && value.image == null ? null : String(value.imageUrl ?? value.image),
+    imageUrl: normalizeImageUrl(value.imageUrl ?? value.image_url ?? value.image ?? value.thumbnailUrl ?? value.photoUrl),
   };
 }
 

@@ -38,3 +38,6 @@
 - [x] Fix product image loading or provide branded visual fallbacks for records without usable image URLs
 - [x] Replace generic footer tab icons with polished POS-specific icons and active-state treatment
 - [x] Verify product media and footer navigation visually in the mobile preview
+- [x] Make category controls compact, balanced, and consistent with the OmniPOS reference
+- [x] Normalize and validate portal product image fields so real images render when available
+- [x] Verify real images, fallback behavior, and category styling in the mobile preview
