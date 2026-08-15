@@ -81,7 +81,6 @@ function normalizeImageUrl(value: unknown): string | null {
   const raw = String(value).trim();
   if (!raw) return null;
   const normalized = raw.startsWith("data:") || raw.startsWith("blob:") || raw.startsWith("http://") || raw.startsWith("https://") ? raw : `${PORTAL_ORIGIN}${raw.startsWith("/") ? "" : "/"}${raw}`;
-  if (Platform.OS === "web" && normalized.startsWith(PORTAL_ORIGIN)) return `${getApiBaseUrl()}/api/portal/image?url=${encodeURIComponent(normalized)}`;
   return normalized;
 }
 
@@ -95,6 +94,10 @@ function normalizeProduct(value: Record<string, unknown>): Product {
     stock: numeric(value.stock ?? value.stockQuantity ?? value.quantity ?? value.inventory),
     categoryId: value.categoryId == null ? null : numeric(value.categoryId),
     imageUrl: normalizeImageUrl(value.imageUrl ?? value.image_url ?? value.image ?? value.thumbnailUrl ?? value.photoUrl ?? value.thumbnail ?? value.media ?? value.images ?? value.photos),
+    imageProxyUrl: (() => {
+      const direct = normalizeImageUrl(value.imageUrl ?? value.image_url ?? value.image ?? value.thumbnailUrl ?? value.photoUrl ?? value.thumbnail ?? value.media ?? value.images ?? value.photos);
+      return Platform.OS === "web" && direct?.startsWith(PORTAL_ORIGIN) ? `${getApiBaseUrl()}/api/portal/image?url=${encodeURIComponent(direct)}` : direct;
+    })(),
   };
 }
 

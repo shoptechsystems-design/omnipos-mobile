@@ -25,6 +25,7 @@ export type Product = {
   stock: number;
   categoryId: number | null;
   imageUrl: string | null;
+  imageProxyUrl?: string | null;
 };
 
 export type Category = { id: number; name: string; color: string };

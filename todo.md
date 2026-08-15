@@ -50,3 +50,6 @@
 - [x] Add Business Settings route and portal-backed settings summary to mobile More
 - [x] Fix sign-out so the portal session and local session are both cleared
 - [ ] Validate More navigation, settings rendering, and post-sign-out protection
+- [x] Reproduce and fix the More screen sign-out action in preview
+- [x] Identify the exact portal thumbnail response or proxy failure
+- [ ] Validate sign-out protection and real product images after the fix
