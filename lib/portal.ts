@@ -100,7 +100,7 @@ function normalizeProduct(value: Record<string, unknown>): Product {
     imageUrl: normalizeImageUrl(value.imageUrl ?? value.image_url ?? value.image ?? value.thumbnailUrl ?? value.photoUrl ?? value.thumbnail ?? value.media ?? value.images ?? value.photos),
     imageProxyUrl: (() => {
       const direct = normalizeImageUrl(value.imageUrl ?? value.image_url ?? value.image ?? value.thumbnailUrl ?? value.photoUrl ?? value.thumbnail ?? value.media ?? value.images ?? value.photos);
-      return Platform.OS === "web" && direct?.startsWith(PORTAL_ORIGIN) ? `${getApiBaseUrl()}/api/portal/image?url=${encodeURIComponent(direct)}` : direct;
+      return direct && (direct.startsWith(PORTAL_ORIGIN) || direct.includes("d36hbw14aib5lz.cloudfront.net")) ? `${getApiBaseUrl()}/api/portal/image?url=${encodeURIComponent(direct)}` : direct;
     })(),
   };
 }

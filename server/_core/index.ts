@@ -94,7 +94,8 @@ async function startServer() {
     try {
       const rawUrl = typeof req.query.url === "string" ? req.query.url : "";
       const targetUrl = new URL(rawUrl);
-      if (targetUrl.origin !== "https://omnipos-hjcb6uyk.manus.space") return res.status(400).send("Invalid portal image URL");
+      const allowedImageOrigins = new Set(["https://omnipos-hjcb6uyk.manus.space", "https://d36hbw14aib5lz.cloudfront.net"]);
+      if (!allowedImageOrigins.has(targetUrl.origin)) return res.status(400).send("Invalid portal image URL");
       const bridgeCookie = parseCookieHeader(req.headers.cookie ?? "").omnipos_portal_session;
       const response = await fetch(targetUrl, { headers: bridgeCookie ? { Cookie: `app_session_id=${decodeURIComponent(bridgeCookie)}` } : undefined });
       if (!response.ok) return res.status(response.status).send("Portal image unavailable");

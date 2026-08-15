@@ -76,3 +76,9 @@
 - [ ] Validate image rendering, mutations, and synchronization in preview and native-sized layouts
 - [x] Verify coordinated portal repository changes and deployment readiness
 
+
+- [x] Trace the confirmed blank product-image regression from portal payload to mobile Image source
+- [x] Ensure portal product records expose a browser/native-loadable image URL
+- [x] Ensure mobile uses the correct authenticated image transport for signed and protected URLs
+- [ ] Validate at least one real portal product image in preview and preserve branded fallback behavior
+
