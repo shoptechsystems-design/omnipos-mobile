@@ -121,6 +121,7 @@ export const portal = {
   createProduct: (input: { name: string; sku?: string; barcode?: string | null; categoryId?: number | null; sellingPrice: number; stockQuantity: number; imageUrl?: string | null; costPrice?: number; discountPrice?: number | null; taxRate?: number | null; minStockLevel?: number; unit?: string }) => request<{ success: true }>("catalog.createProduct", input, "POST"),
   updateProduct: (input: { id: number; name: string; sku: string; categoryId?: number | null; sellingPrice: number; stockQuantity: number; imageUrl?: string | null }) => request<{ success: true }>("catalog.updateProduct", input, "POST"),
   deleteProduct: (input: { id: number }) => request<{ success: true }>("catalog.deleteProduct", input, "POST"),
+  uploadProductImage: (input: { filename: string; base64Data: string; contentType: string }) => request<{ url: string }>("catalog.uploadProductImage", input, "POST"),
   createCustomer: (input: { name: string; email?: string | null; phone?: string | null; groupId?: number | null }) => request<Customer>("customers.create", input, "POST"),
   customerGroups: () => request<CustomerGroup[]>("customerGroups.list"),
   dashboardStats: () => request<DashboardStats>("dashboard.stats"),
@@ -133,9 +134,34 @@ export const portal = {
   tenantSettings: () => request<Record<string, unknown>>("tenant.settings"),
   updateTenantSettings: (input: { name: string; businessType: string; currency: string; taxRate: number; logoUrl?: string | null; receiptFooter?: string | null }) => request<{ success: true }>("tenant.updateSettings", input, "POST"),
   checkout: (input: { items: Array<{ productId: number; quantity: number; price?: number }>; customerId?: number | null; paymentMethod: "cash" | "card" | "transfer" | "other"; amountReceived: number; discountTotal?: number; taxTotal?: number }) => request<CheckoutResult>("pos.checkout", { items: input.items.map(({ productId, quantity }) => ({ productId, quantity })), customerId: input.customerId, paymentMethod: input.paymentMethod, amountReceived: input.amountReceived, discount: input.discountTotal ?? 0 }, "POST"),
-  sales: (input?: { startDate?: number; endDate?: number; customerId?: number }) => request<Sale[]>("sales.list", input ?? {}),
-  inventory: () => request<InventoryItem[]>("inventory.list"),
-  adjustInventory: (input: { productId: number; adjustment: number; reason: string }) => request<InventoryItem>("inventory.adjust", input, "POST"),
+  sales: async (input?: { query?: string }) => {
+    const rows = await request<Array<{ sale?: Record<string, unknown>; customer?: Record<string, unknown> | null }>>("pos.history", input ?? {});
+    return (Array.isArray(rows) ? rows : []).map((row) => {
+      const sale = row.sale ?? {};
+      const items = Array.isArray(sale.items) ? sale.items : [];
+      return {
+        id: numeric(sale.id),
+        orderNumber: String(sale.saleNumber ?? sale.orderNumber ?? "—"),
+        items: items as Sale["items"],
+        total: numeric(sale.total),
+        paymentMethod: String(sale.paymentMethod ?? "other") as Sale["paymentMethod"],
+        timestamp: String(sale.createdAt ?? sale.timestamp ?? ""),
+        customer: row.customer ? ({ id: numeric(row.customer.id), name: String(row.customer.name ?? ""), email: row.customer.email == null ? null : String(row.customer.email), phone: row.customer.phone == null ? null : String(row.customer.phone), loyaltyPoints: numeric(row.customer.loyaltyPoints), totalSpent: numeric(row.customer.totalSpent), groupId: row.customer.groupId == null ? null : numeric(row.customer.groupId) } as Customer) : null,
+      } satisfies Sale;
+    });
+  },
+  inventory: async () => {
+    const values = await request<unknown[]>("inventory.lowStock");
+    return (Array.isArray(values) ? values : []).map((value) => normalizeProduct((value ?? {}) as Record<string, unknown>));
+  },
+  adjustInventory: (input: { productId: number; adjustment: number; reason: string }) => request<{ success: true; stockQuantity: number }>("inventory.adjust", { productId: input.productId, quantity: input.adjustment, reason: input.reason }, "POST"),
+  variants: (input: { productId: number }) => request<unknown[]>("inventory.variants", input),
+  createVariant: (input: { productId: number; name: string; sku: string; additionalPrice?: number; stockQuantity?: number }) => request<{ success: true }>("inventory.createVariant", input, "POST"),
+  deleteVariant: (input: { id: number }) => request<{ success: true }>("inventory.deleteVariant", input, "POST"),
+  suppliers: () => request<unknown[]>("suppliers.list"),
+  createSupplier: (input: { name: string; email?: string | null; phone?: string | null; notes?: string | null }) => request<{ success: true }>("suppliers.create", input, "POST"),
+  purchases: () => request<unknown[]>("purchases.list"),
+  createPurchase: (input: { supplierId?: number | null; notes?: string | null; items: Array<{ productId: number; quantity: number; unitCost: number }> }) => request<unknown>("purchases.create", input, "POST"),
   signOut: async () => {
     if (Platform.OS === "web") {
       await fetch(`${getApiBaseUrl()}/api/portal/session/logout`, { method: "POST", credentials: "include" }).catch(() => undefined);

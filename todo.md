@@ -68,3 +68,11 @@
 - [x] Map repository product, category, expense, settings, and operations routes into mobile types
 - [x] Implement missing portal-parity mobile actions from the repository contract
 - [ ] Revalidate native APK layout, media, scrolling, and synchronized mutations
+
+- [x] Trace missing portal endpoints against mobile operations and authoritative CRM routes
+- [x] Add or repair portal-side endpoint contracts required for mobile parity
+- [x] Fix portal product image URL/storage response and authenticated media delivery
+- [x] Update mobile image normalization and API calls to the reconciled portal contract
+- [ ] Validate image rendering, mutations, and synchronization in preview and native-sized layouts
+- [x] Verify coordinated portal repository changes and deployment readiness
+
