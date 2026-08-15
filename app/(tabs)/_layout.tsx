@@ -13,8 +13,9 @@ function TabIcon({ name, color, focused }: TabIconProps) {
 export default function TabLayout() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const bottom = Platform.OS === "web" ? 10 : Math.max(insets.bottom, 8);
-  return <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.primary, tabBarInactiveTintColor: colors.muted, tabBarButton: HapticTab, tabBarLabelStyle: { fontSize: 10, fontWeight: "700", marginTop: 2 }, tabBarItemStyle: { paddingTop: 3 }, tabBarStyle: { height: 62 + bottom, paddingBottom: bottom, paddingTop: 5, backgroundColor: colors.surface, borderTopColor: colors.border, borderTopWidth: 1, shadowColor: "#0E1B3A", shadowOpacity: 0.06, shadowRadius: 12, elevation: 8 } }}>
+  const bottom = Platform.OS === "web" ? 10 : Math.max(insets.bottom, 14);
+  const tabBarHeight = 70 + bottom;
+  return <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.primary, tabBarInactiveTintColor: colors.muted, tabBarButton: HapticTab, tabBarHideOnKeyboard: true, tabBarLabelStyle: { fontSize: 10, fontWeight: "700", marginTop: 2 }, tabBarItemStyle: { paddingTop: 4 }, tabBarStyle: { height: tabBarHeight, paddingBottom: bottom, paddingTop: 7, backgroundColor: colors.surface, borderTopColor: colors.border, borderTopWidth: 1, shadowColor: "#0E1B3A", shadowOpacity: 0.08, shadowRadius: 12, elevation: 8 } }}>
     <Tabs.Screen name="index" options={{ title: "Sell", tabBarIcon: ({ color, focused }) => <TabIcon name="sell.fill" color={color} focused={focused} /> }} />
     <Tabs.Screen name="orders" options={{ title: "Orders", tabBarIcon: ({ color, focused }) => <TabIcon name="orders.fill" color={color} focused={focused} /> }} />
     <Tabs.Screen name="customers" options={{ title: "Customers", tabBarIcon: ({ color, focused }) => <TabIcon name="customers.fill" color={color} focused={focused} /> }} />

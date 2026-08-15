@@ -53,3 +53,9 @@
 - [x] Reproduce and fix the More screen sign-out action in preview
 - [x] Identify the exact portal thumbnail response or proxy failure
 - [ ] Validate sign-out protection and real product images after the fix
+- [x] Fix native APK safe-area layout and bottom-tab overlap
+- [x] Fix Sell scrolling and category clipping on narrow Android devices
+- [x] Load real portal product images in native builds with authenticated media handling
+- [ ] Add missing mobile actions available in portal, including product/category management and portal operations
+- [x] Add synchronized refresh after all mobile mutations and pull-to-refresh on primary lists
+- [ ] Validate APK-sized Sell, More, Customers, Inventory, and checkout screens

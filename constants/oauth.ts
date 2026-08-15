@@ -45,8 +45,8 @@ export function getApiBaseUrl(): string {
     }
   }
 
-  // Fallback to empty (will use relative URL)
-  return "";
+  // Native APK builds need an absolute origin for the managed image/session proxy.
+  return "https://omniposapp-u9qtvp99.manus.space";
 }
 
 export const SESSION_TOKEN_KEY = "app_session_token";

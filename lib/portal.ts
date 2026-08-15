@@ -10,6 +10,10 @@ const COOKIE_KEY = "omnipos_session_cookie";
 
 type TRPCError = { message?: string };
 
+export async function getPortalSessionCookie() {
+  return Platform.OS === "web" ? AsyncStorage.getItem(COOKIE_KEY) : SecureStore.getItemAsync(COOKIE_KEY);
+}
+
 async function getCookie() {
   return Platform.OS === "web" ? AsyncStorage.getItem(COOKIE_KEY) : SecureStore.getItemAsync(COOKIE_KEY);
 }
@@ -29,7 +33,7 @@ function inputParam(input: unknown) {
 }
 
 async function request<T>(path: string, input?: unknown, method: "GET" | "POST" = "GET") {
-  const cookie = await getCookie();
+  const cookie = await getPortalSessionCookie();
   const url = `${API_BASE}/${path}${method === "GET" && input !== undefined ? `?input=${inputParam(input)}` : ""}`;
   const response = await fetch(url, {
     method,
@@ -43,7 +47,7 @@ async function request<T>(path: string, input?: unknown, method: "GET" | "POST" 
   });
   const setCookie = response.headers.get("set-cookie");
   if (setCookie) {
-    const session = setCookie.split(",").find((part) => part.includes("omnipos_session"))?.split(";")[0];
+    const session = setCookie.split(",").find((part) => part.includes("app_session_id") || part.includes("omnipos_session"))?.split(";")[0];
     if (session) await saveCookie(session);
   }
   const payload = await response.json().catch(() => null);
