@@ -114,5 +114,10 @@ export const portal = {
   sales: (input?: { startDate?: number; endDate?: number; customerId?: number }) => request<Sale[]>("sales.list", input ?? {}),
   inventory: () => request<InventoryItem[]>("inventory.list"),
   adjustInventory: (input: { productId: number; adjustment: number; reason: string }) => request<InventoryItem>("inventory.adjust", input, "POST"),
-  signOut: clearCookie,
+  signOut: async () => {
+    if (Platform.OS === "web") {
+      await fetch(`${getApiBaseUrl()}/api/portal/session/logout`, { method: "POST", credentials: "include" }).catch(() => undefined);
+    }
+    await clearCookie();
+  },
 };

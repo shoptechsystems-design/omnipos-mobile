@@ -83,6 +83,11 @@ async function startServer() {
     }
   });
 
+  app.post("/api/portal/session/logout", (_req, res) => {
+    res.clearCookie("omnipos_portal_session", getSessionCookieOptions(_req));
+    res.status(200).json({ success: true });
+  });
+
   // Authenticated product-thumbnail proxy. Portal image URLs may require the same
   // tenant session as the catalog query, so browser/native image requests use this route.
   app.get("/api/portal/image", async (req, res, next) => {

@@ -47,3 +47,6 @@
 - [x] Inspect exact catalog product image payload and request path in mobile
 - [x] Fix mobile-side product thumbnail proxy or rendering mismatch
 - [ ] Validate portal thumbnails in authenticated mobile preview
+- [x] Add Business Settings route and portal-backed settings summary to mobile More
+- [x] Fix sign-out so the portal session and local session are both cleared
+- [ ] Validate More navigation, settings rendering, and post-sign-out protection
