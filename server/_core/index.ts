@@ -83,6 +83,23 @@ async function startServer() {
     }
   });
 
+  // Authenticated product-thumbnail proxy. Portal image URLs may require the same
+  // tenant session as the catalog query, so browser/native image requests use this route.
+  app.get("/api/portal/image", async (req, res, next) => {
+    try {
+      const rawUrl = typeof req.query.url === "string" ? req.query.url : "";
+      const targetUrl = new URL(rawUrl);
+      if (targetUrl.origin !== "https://omnipos-hjcb6uyk.manus.space") return res.status(400).send("Invalid portal image URL");
+      const bridgeCookie = parseCookieHeader(req.headers.cookie ?? "").omnipos_portal_session;
+      const response = await fetch(targetUrl, { headers: bridgeCookie ? { Cookie: `app_session_id=${decodeURIComponent(bridgeCookie)}` } : undefined });
+      if (!response.ok) return res.status(response.status).send("Portal image unavailable");
+      const contentType = response.headers.get("content-type") ?? "image/jpeg";
+      res.status(200).setHeader("content-type", contentType).setHeader("cache-control", "private, max-age=300").send(Buffer.from(await response.arrayBuffer()));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Same-origin proxy for the external OmniPOS portal. This is required by the web preview
   // because the portal does not expose browser CORS headers for credentialed requests.
   app.use("/api/portal/trpc", async (req, res, next) => {

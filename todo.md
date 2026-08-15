@@ -41,3 +41,6 @@
 - [x] Make category controls compact, balanced, and consistent with the OmniPOS reference
 - [x] Normalize and validate portal product image fields so real images render when available
 - [x] Verify real images, fallback behavior, and category styling in the mobile preview
+- [x] Add an authenticated portal image proxy so mobile can load protected product thumbnails
+- [x] Polish header sizing and footer iconography for small and large mobile widths
+- [x] Verify portal thumbnails, fallback behavior, header, and footer in the preview

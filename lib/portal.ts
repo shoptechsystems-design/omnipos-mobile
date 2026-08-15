@@ -69,8 +69,9 @@ function normalizeImageUrl(value: unknown) {
   if (value == null) return null;
   const raw = String(value).trim();
   if (!raw) return null;
-  if (raw.startsWith("data:") || raw.startsWith("blob:") || raw.startsWith("http://") || raw.startsWith("https://")) return raw;
-  return `${PORTAL_ORIGIN}${raw.startsWith("/") ? "" : "/"}${raw}`;
+  const normalized = raw.startsWith("data:") || raw.startsWith("blob:") || raw.startsWith("http://") || raw.startsWith("https://") ? raw : `${PORTAL_ORIGIN}${raw.startsWith("/") ? "" : "/"}${raw}`;
+  if (Platform.OS === "web" && normalized.startsWith(PORTAL_ORIGIN)) return `${getApiBaseUrl()}/api/portal/image?url=${encodeURIComponent(normalized)}`;
+  return normalized;
 }
 
 function normalizeProduct(value: Record<string, unknown>): Product {
