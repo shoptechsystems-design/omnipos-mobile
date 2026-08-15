@@ -150,17 +150,22 @@ export const portal = {
       } satisfies Sale;
     });
   },
-  inventory: async () => {
+  inventory: async (input?: { query?: string }) => {
+    const values = await request<unknown[]>("inventory.list", input ?? {});
+    return (Array.isArray(values) ? values : []).map((value) => normalizeProduct((value ?? {}) as Record<string, unknown>));
+  },
+  lowStock: async () => {
     const values = await request<unknown[]>("inventory.lowStock");
     return (Array.isArray(values) ? values : []).map((value) => normalizeProduct((value ?? {}) as Record<string, unknown>));
   },
+  movements: (input?: { productId?: number }) => request<unknown[]>("inventory.movements", input ?? {}),
   adjustInventory: (input: { productId: number; adjustment: number; reason: string }) => request<{ success: true; stockQuantity: number }>("inventory.adjust", { productId: input.productId, quantity: input.adjustment, reason: input.reason }, "POST"),
   variants: (input: { productId: number }) => request<unknown[]>("inventory.variants", input),
   createVariant: (input: { productId: number; name: string; sku: string; additionalPrice?: number; stockQuantity?: number }) => request<{ success: true }>("inventory.createVariant", input, "POST"),
   deleteVariant: (input: { id: number }) => request<{ success: true }>("inventory.deleteVariant", input, "POST"),
-  suppliers: () => request<unknown[]>("suppliers.list"),
+  suppliers: async (): Promise<unknown[]> => { const values = await request<unknown[]>("suppliers.list"); return Array.isArray(values) ? values : []; },
   createSupplier: (input: { name: string; email?: string | null; phone?: string | null; notes?: string | null }) => request<{ success: true }>("suppliers.create", input, "POST"),
-  purchases: () => request<unknown[]>("purchases.list"),
+  purchases: async (): Promise<unknown[]> => { const values = await request<unknown[]>("purchases.list"); return Array.isArray(values) ? values : []; },
   createPurchase: (input: { supplierId?: number | null; notes?: string | null; items: Array<{ productId: number; quantity: number; unitCost: number }> }) => request<unknown>("purchases.create", input, "POST"),
   signOut: async () => {
     if (Platform.OS === "web") {

@@ -82,3 +82,11 @@
 - [x] Ensure mobile uses the correct authenticated image transport for signed and protected URLs
 - [ ] Validate at least one real portal product image in preview and preserve branded fallback behavior
 
+
+- [x] Compare portal Inventory & POs data with the mobile Inventory query and UI
+- [x] Add portal inventory endpoints for audit movements and full product inventory if missing
+- [x] Add synchronized mobile inventory sections for low-stock alerts, variants, suppliers, purchase orders, and audit ledger
+- [x] Ensure manual stock adjustments use the same quantity-change semantics as the portal
+- [ ] Validate mobile inventory records match portal records after login and mutations
+- [ ] Validate inventory layout and scrolling at APK-sized dimensions
+
