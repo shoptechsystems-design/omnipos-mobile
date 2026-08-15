@@ -29,6 +29,8 @@ export type Product = {
 };
 
 export type Category = { id: number; name: string; color: string };
+export type Expense = { id: number; category: string; amount: number; notes: string | null; expenseDate: string | number | null };
+export type TeamMember = { membership: { role: string; status: string }; user: { id: number; name: string | null; email: string; role: string } };
 export type CustomerGroup = { id: number; name: string; discountPercent: number };
 export type Customer = {
   id: number;
@@ -59,6 +61,8 @@ export type CheckoutResult = {
   changeDue: number;
   loyaltyPointsEarned: number;
 };
+
+export type DashboardStats = { revenue?: number | string; sales?: number; orders?: number; customers?: number; lowStock?: number; [key: string]: unknown };
 
 export const numeric = (value: unknown, fallback = 0) => {
   const parsed = typeof value === "number" ? value : Number(value);

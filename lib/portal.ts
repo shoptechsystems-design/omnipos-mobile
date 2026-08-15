@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import { getApiBaseUrl } from "@/constants/oauth";
-import { numeric, type Category, type CheckoutResult, type Customer, type CustomerGroup, type InventoryItem, type Membership, type Product, type Sale, type Tenant, type User } from "@/shared/omnipos";
+import { numeric, type Category, type CheckoutResult, type Customer, type CustomerGroup, type DashboardStats, type Expense, type InventoryItem, type Membership, type Product, type Sale, type TeamMember, type Tenant, type User } from "@/shared/omnipos";
 
 export const PORTAL_ORIGIN = "https://omnipos-hjcb6uyk.manus.space";
 const API_BASE = Platform.OS === "web" ? `${getApiBaseUrl()}/api/portal/trpc` : `${PORTAL_ORIGIN}/api/trpc`;
@@ -110,14 +110,29 @@ export const portal = {
   me: () => request<User | null>("auth.me"),
   tenantContext: () => request<{ tenant: Tenant; membership: Membership }>("tenant.context"),
   products: async (input?: { search?: string; categoryId?: number }) => {
-    const values = await request<unknown[]>("catalog.products", input ?? {});
+    const values = await request<unknown[]>("catalog.products", { query: input?.search, categoryId: input?.categoryId });
     return (Array.isArray(values) ? values : []).map((value) => normalizeProduct((value ?? {}) as Record<string, unknown>));
   },
   categories: () => request<Category[]>("catalog.categories"),
-  customers: (input?: { search?: string }) => request<Customer[]>("customers.list", input ?? {}),
+  customers: (input?: { search?: string }) => request<Customer[]>("customers.list", { query: input?.search }),
+  createCategory: (input: { name: string; color?: string }) => request<{ success: true }>("catalog.createCategory", input, "POST"),
+  updateCategory: (input: { id: number; name: string; color?: string }) => request<{ success: true }>("catalog.updateCategory", input, "POST"),
+  deleteCategory: (input: { id: number }) => request<{ success: true }>("catalog.deleteCategory", input, "POST"),
+  createProduct: (input: { name: string; sku?: string; barcode?: string | null; categoryId?: number | null; sellingPrice: number; stockQuantity: number; imageUrl?: string | null; costPrice?: number; discountPrice?: number | null; taxRate?: number | null; minStockLevel?: number; unit?: string }) => request<{ success: true }>("catalog.createProduct", input, "POST"),
+  updateProduct: (input: { id: number; name: string; sku: string; categoryId?: number | null; sellingPrice: number; stockQuantity: number; imageUrl?: string | null }) => request<{ success: true }>("catalog.updateProduct", input, "POST"),
+  deleteProduct: (input: { id: number }) => request<{ success: true }>("catalog.deleteProduct", input, "POST"),
   createCustomer: (input: { name: string; email?: string | null; phone?: string | null; groupId?: number | null }) => request<Customer>("customers.create", input, "POST"),
   customerGroups: () => request<CustomerGroup[]>("customerGroups.list"),
-  checkout: (input: { items: Array<{ productId: number; quantity: number; price: number }>; customerId?: number | null; paymentMethod: "cash" | "card" | "transfer" | "other"; amountReceived: number; discountTotal?: number; taxTotal?: number }) => request<CheckoutResult>("pos.checkout", input, "POST"),
+  dashboardStats: () => request<DashboardStats>("dashboard.stats"),
+  dashboardLowStock: () => request<InventoryItem[]>("dashboard.lowStock"),
+  dashboardRecentSales: () => request<Sale[]>("dashboard.recentSales"),
+  expenses: () => request<Expense[]>("expenses.list"),
+  createExpense: (input: { category: string; amount: number; notes?: string | null; expenseDate?: string }) => request<{ success: true }>("expenses.create", input, "POST"),
+  team: () => request<TeamMember[]>("team.list"),
+  inviteTeamMember: (input: { email: string; name: string; role: "cashier" | "inventory_manager" }) => request<{ success: true }>("team.invite", input, "POST"),
+  tenantSettings: () => request<Record<string, unknown>>("tenant.settings"),
+  updateTenantSettings: (input: { name: string; businessType: string; currency: string; taxRate: number; logoUrl?: string | null; receiptFooter?: string | null }) => request<{ success: true }>("tenant.updateSettings", input, "POST"),
+  checkout: (input: { items: Array<{ productId: number; quantity: number; price?: number }>; customerId?: number | null; paymentMethod: "cash" | "card" | "transfer" | "other"; amountReceived: number; discountTotal?: number; taxTotal?: number }) => request<CheckoutResult>("pos.checkout", { items: input.items.map(({ productId, quantity }) => ({ productId, quantity })), customerId: input.customerId, paymentMethod: input.paymentMethod, amountReceived: input.amountReceived, discount: input.discountTotal ?? 0 }, "POST"),
   sales: (input?: { startDate?: number; endDate?: number; customerId?: number }) => request<Sale[]>("sales.list", input ?? {}),
   inventory: () => request<InventoryItem[]>("inventory.list"),
   adjustInventory: (input: { productId: number; adjustment: number; reason: string }) => request<InventoryItem>("inventory.adjust", input, "POST"),

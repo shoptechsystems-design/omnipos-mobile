@@ -56,6 +56,15 @@
 - [x] Fix native APK safe-area layout and bottom-tab overlap
 - [x] Fix Sell scrolling and category clipping on narrow Android devices
 - [x] Load real portal product images in native builds with authenticated media handling
-- [ ] Add missing mobile actions available in portal, including product/category management and portal operations
+- [x] Add missing mobile actions available in portal, including product/category management and portal operations
 - [x] Add synchronized refresh after all mobile mutations and pull-to-refresh on primary lists
 - [ ] Validate APK-sized Sell, More, Customers, Inventory, and checkout screens
+- [x] Map portal Add Product and Add Category actions to exact API routes
+- [x] Add mobile product/category management screens with real portal mutations
+- [x] Add mobile Expenses list and Add Expense flow with portal synchronization
+- [x] Add portal-parity navigation for the visible operations sections
+- [ ] Validate new mobile mutations against portal records and APK layouts
+- [x] Inspect shoptechsystems-design/saas-pos-platform repository for authoritative CRM routes
+- [x] Map repository product, category, expense, settings, and operations routes into mobile types
+- [x] Implement missing portal-parity mobile actions from the repository contract
+- [ ] Revalidate native APK layout, media, scrolling, and synchronized mutations
