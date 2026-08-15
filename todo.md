@@ -35,3 +35,6 @@
 - [x] Align all mobile navigation screens with the live portal feature set and route names
 - [x] Verify every read and mutation route refreshes synchronized mobile records after portal changes
 - [x] Run responsive visual and authenticated data-sync verification after the UI polish
+- [x] Fix product image loading or provide branded visual fallbacks for records without usable image URLs
+- [x] Replace generic footer tab icons with polished POS-specific icons and active-state treatment
+- [x] Verify product media and footer navigation visually in the mobile preview
