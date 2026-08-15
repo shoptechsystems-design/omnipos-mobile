@@ -65,8 +65,19 @@ async function login(input: { email: string; password: string }) {
   return (payload?.result?.data?.json ?? payload?.result?.data ?? payload) as { success: true; user: User };
 }
 
-function normalizeImageUrl(value: unknown) {
+function normalizeImageUrl(value: unknown): string | null {
   if (value == null) return null;
+  if (Array.isArray(value)) {
+    for (const candidate of value) {
+      const found = normalizeImageUrl(candidate);
+      if (found) return found;
+    }
+    return null;
+  }
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    return normalizeImageUrl(record.url ?? record.src ?? record.path ?? record.imageUrl ?? record.image_url ?? record.thumbnailUrl ?? record.photoUrl);
+  }
   const raw = String(value).trim();
   if (!raw) return null;
   const normalized = raw.startsWith("data:") || raw.startsWith("blob:") || raw.startsWith("http://") || raw.startsWith("https://") ? raw : `${PORTAL_ORIGIN}${raw.startsWith("/") ? "" : "/"}${raw}`;
@@ -83,7 +94,7 @@ function normalizeProduct(value: Record<string, unknown>): Product {
     price: numeric(value.price ?? value.sellingPrice ?? value.salePrice ?? value.retailPrice ?? value.unitPrice),
     stock: numeric(value.stock ?? value.stockQuantity ?? value.quantity ?? value.inventory),
     categoryId: value.categoryId == null ? null : numeric(value.categoryId),
-    imageUrl: normalizeImageUrl(value.imageUrl ?? value.image_url ?? value.image ?? value.thumbnailUrl ?? value.photoUrl),
+    imageUrl: normalizeImageUrl(value.imageUrl ?? value.image_url ?? value.image ?? value.thumbnailUrl ?? value.photoUrl ?? value.thumbnail ?? value.media ?? value.images ?? value.photos),
   };
 }
 

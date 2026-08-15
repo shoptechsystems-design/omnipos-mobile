@@ -44,3 +44,6 @@
 - [x] Add an authenticated portal image proxy so mobile can load protected product thumbnails
 - [x] Polish header sizing and footer iconography for small and large mobile widths
 - [x] Verify portal thumbnails, fallback behavior, header, and footer in the preview
+- [x] Inspect exact catalog product image payload and request path in mobile
+- [x] Fix mobile-side product thumbnail proxy or rendering mismatch
+- [ ] Validate portal thumbnails in authenticated mobile preview
