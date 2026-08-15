@@ -30,3 +30,8 @@
 - [x] Re-test login, tenant context, and Customers data after the session-cookie handoff fix
 - [x] Fix post-login Sell crash when live portal product price fields are missing or differently named
 - [x] Re-validate Sell rendering and Customers data after the product normalization fix
+- [x] Polish Sell screen to match the supplied OmniPOS reference hierarchy, spacing, cards, tabs, and bottom cart bar
+- [x] Polish Review Order and checkout screen to match the supplied checkout reference flow
+- [x] Align all mobile navigation screens with the live portal feature set and route names
+- [x] Verify every read and mutation route refreshes synchronized mobile records after portal changes
+- [x] Run responsive visual and authenticated data-sync verification after the UI polish
