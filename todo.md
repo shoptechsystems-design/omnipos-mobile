@@ -106,3 +106,8 @@
 - [x] Add animated loading feedback and categorized errors to expense submission
 - [x] Validate catalog and expense feedback at narrow mobile dimensions
 
+
+- [x] Remove loyalty points and total-spent presentation from mobile customer cards
+- [x] Redesign the customer directory header, search, cards, and states for a more polished mobile experience
+- [x] Validate the customer directory at narrow mobile dimensions
+
