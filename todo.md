@@ -95,3 +95,8 @@
 - [x] Audit sign-in and operational forms for Android/iOS field visibility, keyboard avoidance, and safe-area scrolling
 - [x] Validate password visibility and form layouts at narrow mobile dimensions
 
+
+- [x] Add animated loading feedback while sign-in is in progress
+- [x] Add clear validation, authentication, and network error states to sign-in
+- [x] Validate loading and error feedback at narrow mobile dimensions
+
