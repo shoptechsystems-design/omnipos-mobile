@@ -90,3 +90,8 @@
 - [ ] Validate mobile inventory records match portal records after login and mutations
 - [ ] Validate inventory layout and scrolling at APK-sized dimensions
 
+
+- [x] Add a visible eye control to the sign-in password field
+- [x] Audit sign-in and operational forms for Android/iOS field visibility, keyboard avoidance, and safe-area scrolling
+- [x] Validate password visibility and form layouts at narrow mobile dimensions
+
