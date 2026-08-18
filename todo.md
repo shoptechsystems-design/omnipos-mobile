@@ -111,3 +111,9 @@
 - [x] Redesign the customer directory header, search, cards, and states for a more polished mobile experience
 - [x] Validate the customer directory at narrow mobile dimensions
 
+
+- [x] Replace the generic contact label with the actual customer email or phone value
+- [x] Remove the inactive right chevron from customer cards
+- [x] Add working email, phone, or copy contact actions where data is available
+- [x] Validate clarified customer cards at narrow mobile dimensions
+
