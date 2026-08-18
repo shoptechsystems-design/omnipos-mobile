@@ -100,3 +100,9 @@
 - [x] Add clear validation, authentication, and network error states to sign-in
 - [x] Validate loading and error feedback at narrow mobile dimensions
 
+
+- [x] Add animated loading feedback to catalog product/category submissions
+- [x] Add categorized validation, authentication, network, and server error states to catalog forms
+- [x] Add animated loading feedback and categorized errors to expense submission
+- [x] Validate catalog and expense feedback at narrow mobile dimensions
+
