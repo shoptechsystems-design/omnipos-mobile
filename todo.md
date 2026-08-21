@@ -117,3 +117,13 @@
 - [x] Add working email, phone, or copy contact actions where data is available
 - [x] Validate clarified customer cards at narrow mobile dimensions
 
+
+- [x] Audit mobile-to-portal route coverage and response-shape parity end to end
+- [x] Run repository typecheck, lint, tests, and build validation for mobile and portal
+- [x] Audit authentication, session persistence, sign-out, protected-route handling, and error states
+- [x] Audit Sell, checkout, Orders, Customers, Inventory, Catalog, Expenses, More, and settings flows
+- [x] Audit product-image delivery across portal storage, proxy, web preview, and native transport
+- [x] Audit responsive layouts, keyboard avoidance, safe areas, scrolling, and accessibility affordances
+- [x] Fix confirmed QA defects and portal mismatches
+- [x] Re-run regression QA and document remaining environment-dependent validation limits
+

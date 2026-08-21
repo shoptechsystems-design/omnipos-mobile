@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Alert, Modal, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ScreenContainer } from "@/components/screen-container";
@@ -30,7 +30,7 @@ export default function Inventory() {
   const purchaseRows = Array.isArray(purchases.data) ? purchases.data : [];
   const movementRows = Array.isArray(movements.data) ? movements.data : [];
   const refreshing = inventory.isFetching || lowStock.isFetching || movements.isFetching || suppliers.isFetching || purchases.isFetching;
-  const totalUnits = useMemo(() => inventoryRows.reduce((sum, item) => sum + item.stock, 0), [inventoryRows]);
+  const totalUnits = inventoryRows.reduce((sum, item) => sum + item.stock, 0);
   const adjust = useMutation({
     mutationFn: () => portal.adjustInventory({ productId: selected?.id ?? 0, adjustment: Number(adjustment), reason: reason.trim() || "Mobile stock adjustment" }),
     onSuccess: () => {

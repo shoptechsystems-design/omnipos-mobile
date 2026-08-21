@@ -1,9 +1,10 @@
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Platform, Text, View } from "react-native";
+import { Platform, View } from "react-native";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { HapticTab } from "@/components/haptic-tab";
 import { useColors } from "@/hooks/use-colors";
+import { usePortalGate } from "@/hooks/use-portal-gate";
 
 type TabIconProps = { name: "sell.fill" | "orders.fill" | "customers.fill" | "inventory.fill" | "more.fill"; color: string; focused: boolean };
 function TabIcon({ name, color, focused }: TabIconProps) {
@@ -12,9 +13,11 @@ function TabIcon({ name, color, focused }: TabIconProps) {
 
 export default function TabLayout() {
   const colors = useColors();
+  const { gate } = usePortalGate();
   const insets = useSafeAreaInsets();
   const bottom = Platform.OS === "web" ? 10 : Math.max(insets.bottom, 14);
   const tabBarHeight = 70 + bottom;
+  if (gate) return gate;
   return <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.primary, tabBarInactiveTintColor: colors.muted, tabBarButton: HapticTab, tabBarHideOnKeyboard: true, tabBarLabelStyle: { fontSize: 10, fontWeight: "700", marginTop: 2 }, tabBarItemStyle: { paddingTop: 4 }, tabBarStyle: { height: tabBarHeight, paddingBottom: bottom, paddingTop: 7, backgroundColor: colors.surface, borderTopColor: colors.border, borderTopWidth: 1, shadowColor: "#0E1B3A", shadowOpacity: 0.08, shadowRadius: 12, elevation: 8 } }}>
     <Tabs.Screen name="index" options={{ title: "Sell", tabBarIcon: ({ color, focused }) => <TabIcon name="sell.fill" color={color} focused={focused} /> }} />
     <Tabs.Screen name="orders" options={{ title: "Orders", tabBarIcon: ({ color, focused }) => <TabIcon name="orders.fill" color={color} focused={focused} /> }} />

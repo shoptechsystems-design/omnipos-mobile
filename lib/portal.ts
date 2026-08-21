@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import { getApiBaseUrl } from "@/constants/oauth";
-import { numeric, type Category, type CheckoutResult, type Customer, type CustomerGroup, type DashboardStats, type Expense, type InventoryItem, type Membership, type Product, type Sale, type TeamMember, type Tenant, type User } from "@/shared/omnipos";
+import { numeric, type Category, type CheckoutResult, type Customer, type DashboardStats, type Expense, type InventoryItem, type Membership, type Product, type Sale, type SalesTrendPoint, type TeamMember, type Tenant, type User } from "@/shared/omnipos";
 
 export const PORTAL_ORIGIN = "https://omnipos-hjcb6uyk.manus.space";
 const API_BASE = Platform.OS === "web" ? `${getApiBaseUrl()}/api/portal/trpc` : `${PORTAL_ORIGIN}/api/trpc`;
@@ -35,7 +35,11 @@ function inputParam(input: unknown) {
 async function request<T>(path: string, input?: unknown, method: "GET" | "POST" = "GET") {
   const cookie = await getPortalSessionCookie();
   const url = `${API_BASE}/${path}${method === "GET" && input !== undefined ? `?input=${inputParam(input)}` : ""}`;
-  const response = await fetch(url, {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+  let response: Response;
+  try {
+    response = await fetch(url, {
     method,
     credentials: "include",
     headers: {
@@ -44,7 +48,14 @@ async function request<T>(path: string, input?: unknown, method: "GET" | "POST" 
       ...(cookie ? { Cookie: cookie } : {}),
     },
     body: method === "POST" ? JSON.stringify({ json: input ?? {} }) : undefined,
-  });
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") throw new Error("Portal request timed out. Check your connection and try again.");
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
   const setCookie = response.headers.get("set-cookie");
   if (setCookie) {
     const session = setCookie.split(",").find((part) => part.includes("app_session_id") || part.includes("omnipos_session"))?.split(";")[0];
@@ -60,7 +71,17 @@ async function request<T>(path: string, input?: unknown, method: "GET" | "POST" 
 
 async function login(input: { email: string; password: string }) {
   if (Platform.OS !== "web") return request<{ success: true; user: User }>("auth.login", input, "POST");
-  const response = await fetch(`${getApiBaseUrl()}/api/portal/session/login`, { method: "POST", credentials: "include", headers: { Accept: "application/json", "Content-Type": "application/json" }, body: JSON.stringify({ email: input.email, password: input.password }) });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBaseUrl()}/api/portal/session/login`, { method: "POST", credentials: "include", headers: { Accept: "application/json", "Content-Type": "application/json" }, body: JSON.stringify({ email: input.email, password: input.password }), signal: controller.signal });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") throw new Error("Sign-in timed out. Check your connection and try again.");
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
   const payload = await response.json().catch(() => null);
   if (!response.ok || payload?.error) {
     const error = payload?.error as TRPCError & { json?: { message?: string } } | undefined;
@@ -123,10 +144,10 @@ export const portal = {
   deleteProduct: (input: { id: number }) => request<{ success: true }>("catalog.deleteProduct", input, "POST"),
   uploadProductImage: (input: { filename: string; base64Data: string; contentType: string }) => request<{ url: string }>("catalog.uploadProductImage", input, "POST"),
   createCustomer: (input: { name: string; email?: string | null; phone?: string | null; groupId?: number | null }) => request<Customer>("customers.create", input, "POST"),
-  customerGroups: () => request<CustomerGroup[]>("customerGroups.list"),
   dashboardStats: () => request<DashboardStats>("dashboard.stats"),
   dashboardLowStock: () => request<InventoryItem[]>("dashboard.lowStock"),
   dashboardRecentSales: () => request<Sale[]>("dashboard.recentSales"),
+  dashboardSalesTrend: (input: { days?: number } = {}) => request<SalesTrendPoint[]>("dashboard.salesTrend", { days: input.days ?? 14 }),
   expenses: () => request<Expense[]>("expenses.list"),
   createExpense: (input: { category: string; amount: number; notes?: string | null; expenseDate?: string }) => request<{ success: true }>("expenses.create", input, "POST"),
   team: () => request<TeamMember[]>("team.list"),

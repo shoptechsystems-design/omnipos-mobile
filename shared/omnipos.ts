@@ -63,6 +63,7 @@ export type CheckoutResult = {
 };
 
 export type DashboardStats = { revenue?: number | string; sales?: number; orders?: number; customers?: number; lowStock?: number; [key: string]: unknown };
+export type SalesTrendPoint = { day: string; total: number; orders: number };
 
 export const numeric = (value: unknown, fallback = 0) => {
   const parsed = typeof value === "number" ? value : Number(value);
