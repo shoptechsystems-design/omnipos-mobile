@@ -127,3 +127,10 @@
 - [x] Fix confirmed QA defects and portal mismatches
 - [x] Re-run regression QA and document remaining environment-dependent validation limits
 
+
+- [x] Define reference-matched iOS visual tokens, spacing, cards, and navigation treatment
+- [x] Redesign Sign In, Sell, Orders, Customers, Inventory, and More to match the supplied reference
+- [x] Preserve live portal queries, mutations, session gates, and error/loading behavior during the redesign
+- [x] Validate the redesigned screens at narrow phone and desktop preview sizes
+- [x] Re-run mobile QA and checkpoint the reference-matched redesign
+

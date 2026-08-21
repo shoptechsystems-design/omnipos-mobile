@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ScreenContainer } from "@/components/screen-container";
 import { portal } from "@/lib/portal";
 import { useColors } from "@/hooks/use-colors";
+import { usePortalGate } from "@/hooks/use-portal-gate";
 import type { InventoryItem } from "@/shared/omnipos";
 
 const asRecord = (value: unknown) => (value && typeof value === "object" ? value as Record<string, unknown> : {});
@@ -14,6 +15,7 @@ type InventoryTab = "stock" | "movements" | "purchases";
 
 export default function Inventory() {
   const colors = useColors();
+  const { gate } = usePortalGate();
   const client = useQueryClient();
   const [tab, setTab] = useState<InventoryTab>("stock");
   const [selected, setSelected] = useState<InventoryItem | null>(null);
@@ -43,6 +45,7 @@ export default function Inventory() {
   });
   const reload = () => { inventory.refetch(); lowStock.refetch(); movements.refetch(); suppliers.refetch(); purchases.refetch(); };
   const fieldStyle = { height: 48, borderRadius: 14, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, color: colors.foreground, marginTop: 10 } as const;
+  if (gate) return gate;
   const tabStyle = (active: boolean) => ({ paddingHorizontal: 14, height: 38, borderRadius: 19, alignItems: "center" as const, justifyContent: "center" as const, backgroundColor: active ? colors.primary : colors.surface, borderWidth: 1, borderColor: active ? colors.primary : colors.border });
   return <ScreenContainer className="px-4 pt-4" edges={["top", "left", "right"]}>
     <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={reload} tintColor={colors.primary} />} contentContainerStyle={{ paddingBottom: 132 }} showsVerticalScrollIndicator={false}>

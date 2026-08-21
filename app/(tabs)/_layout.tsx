@@ -8,7 +8,7 @@ import { usePortalGate } from "@/hooks/use-portal-gate";
 
 type TabIconProps = { name: "sell.fill" | "orders.fill" | "customers.fill" | "inventory.fill" | "more.fill"; color: string; focused: boolean };
 function TabIcon({ name, color, focused }: TabIconProps) {
-  return <View style={{ minWidth: 44, height: 30, paddingHorizontal: 10, borderRadius: 15, alignItems: "center", justifyContent: "center", backgroundColor: focused ? "#E6F6F7" : "transparent" }}><IconSymbol name={name} size={focused ? 22 : 21} color={color} /></View>;
+  return <View style={{ minWidth: 34, height: 28, alignItems: "center", justifyContent: "center", opacity: focused ? 1 : 0.82 }}><IconSymbol name={name} size={focused ? 19 : 18} color={color} /></View>;
 }
 
 export default function TabLayout() {
@@ -16,9 +16,9 @@ export default function TabLayout() {
   const { gate } = usePortalGate();
   const insets = useSafeAreaInsets();
   const bottom = Platform.OS === "web" ? 10 : Math.max(insets.bottom, 14);
-  const tabBarHeight = 70 + bottom;
+  const tabBarHeight = 64 + bottom;
   if (gate) return gate;
-  return <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.primary, tabBarInactiveTintColor: colors.muted, tabBarButton: HapticTab, tabBarHideOnKeyboard: true, tabBarLabelStyle: { fontSize: 10, fontWeight: "700", marginTop: 2 }, tabBarItemStyle: { paddingTop: 4 }, tabBarStyle: { height: tabBarHeight, paddingBottom: bottom, paddingTop: 7, backgroundColor: colors.surface, borderTopColor: colors.border, borderTopWidth: 1, shadowColor: "#0E1B3A", shadowOpacity: 0.08, shadowRadius: 12, elevation: 8 } }}>
+  return <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.primary, tabBarInactiveTintColor: colors.muted, tabBarButton: HapticTab, tabBarHideOnKeyboard: true, tabBarLabelStyle: { fontSize: 10, fontWeight: "800", marginTop: 0 }, tabBarItemStyle: { paddingTop: 3 }, tabBarStyle: { height: tabBarHeight, paddingBottom: bottom, paddingTop: 5, backgroundColor: colors.surface, borderTopColor: colors.border, borderTopWidth: 1, shadowColor: "#10203F", shadowOpacity: 0.06, shadowRadius: 10, elevation: 5 } }}>
     <Tabs.Screen name="index" options={{ title: "Sell", tabBarIcon: ({ color, focused }) => <TabIcon name="sell.fill" color={color} focused={focused} /> }} />
     <Tabs.Screen name="orders" options={{ title: "Orders", tabBarIcon: ({ color, focused }) => <TabIcon name="orders.fill" color={color} focused={focused} /> }} />
     <Tabs.Screen name="customers" options={{ title: "Customers", tabBarIcon: ({ color, focused }) => <TabIcon name="customers.fill" color={color} focused={focused} /> }} />

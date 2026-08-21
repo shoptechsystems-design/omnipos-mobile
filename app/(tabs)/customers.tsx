@@ -5,12 +5,13 @@ import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { portal } from "@/lib/portal";
 import { useColors } from "@/hooks/use-colors";
+import { usePortalGate } from "@/hooks/use-portal-gate";
 import { LoadingButton } from "@/components/form-feedback";
 
 const avatarColors = ["#0B8AA8", "#243B6B", "#C16D4B", "#6B5CA5"];
 
 export default function Customers() {
-  const colors = useColors(); const client = useQueryClient(); const [search, setSearch] = useState(""); const [showCreate, setShowCreate] = useState(false); const [name, setName] = useState(""); const [email, setEmail] = useState(""); const [phone, setPhone] = useState("");
+  const colors = useColors(); const { gate } = usePortalGate(); const client = useQueryClient(); const [search, setSearch] = useState(""); const [showCreate, setShowCreate] = useState(false); const [name, setName] = useState(""); const [email, setEmail] = useState(""); const [phone, setPhone] = useState("");
   const context = useQuery({ queryKey: ["tenant-context"], queryFn: portal.tenantContext, retry: false });
   const q = useQuery({ queryKey: ["customers", search], queryFn: () => portal.customers({ search: search.trim() || undefined }), enabled: context.isSuccess });
   const create = useMutation({ mutationFn: () => portal.createCustomer({ name: name.trim(), email: email.trim() || null, phone: phone.trim() || null }), onSuccess: () => { setName(""); setEmail(""); setPhone(""); setShowCreate(false); client.invalidateQueries({ queryKey: ["customers"] }); Alert.alert("Customer added", "The customer is now synchronized with the portal."); }, onError: (error) => Alert.alert("Could not add customer", error.message) });
@@ -18,6 +19,7 @@ export default function Customers() {
   const customers = q.data ?? [];
   const fieldStyle = { height: 50, borderRadius: 14, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, color: colors.foreground, marginTop: 10 } as const;
   const closeCreate = () => { setShowCreate(false); setName(""); setEmail(""); setPhone(""); };
+  if (gate) return gate;
   const openContact = async (kind: "email" | "phone", value: string) => { const url = kind === "email" ? `mailto:${value}` : `tel:${value}`; const supported = await Linking.canOpenURL(url); if (supported) await Linking.openURL(url); else Alert.alert("Contact unavailable", `No ${kind} app is available on this device.`); };
   return <ScreenContainer className="px-4 pt-4" edges={["top", "bottom", "left", "right"]}>
     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}><View style={{ flex: 1, paddingRight: 14 }}><Text style={{ color: colors.foreground, fontSize: 30, lineHeight: 34, fontWeight: "900", letterSpacing: -0.8 }}>Customers</Text><Text style={{ color: colors.muted, fontSize: 13, marginTop: 4 }}>Your customer directory</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Add customer" onPress={() => setShowCreate(true)} style={({ pressed }) => [{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", shadowColor: colors.primary, shadowOpacity: 0.2, shadowRadius: 8, elevation: 3 }, pressed && { opacity: 0.72, transform: [{ scale: 0.96 }] }]}><IconSymbol name="plus" size={23} color="#FFFFFF" /></Pressable></View>
