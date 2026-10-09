@@ -8,6 +8,8 @@ import { useColors } from "@/hooks/use-colors";
 import { portal } from "@/lib/portal";
 import { money, type PaymentMethod } from "@/shared/omnipos";
 import { useCart } from "@/lib/cart-context";
+import { queueCheckout } from "@/lib/offline-sync";
+import { isRetryableOfflineError } from "@/lib/offline-utils";
 
 export default function CheckoutScreen() {
   const colors = useColors();
@@ -17,7 +19,7 @@ export default function CheckoutScreen() {
   const [received, setReceived] = useState(String(cart.total));
   const [customerId, setCustomerId] = useState<number | null>(null);
   const customers = useQuery({ queryKey: ["customers", "checkout"], queryFn: () => portal.customers() });
-  const checkout = useMutation({ mutationFn: () => portal.checkout({ items: cart.lines.map((line) => ({ productId: line.id, quantity: line.quantity, price: line.price })), customerId, paymentMethod, amountReceived: Number(received) || 0, discountTotal: 0, taxTotal: 0 }), onSuccess: (result) => { client.invalidateQueries({ queryKey: ["products"] }); client.invalidateQueries({ queryKey: ["inventory"] }); client.invalidateQueries({ queryKey: ["customers"] }); client.invalidateQueries({ queryKey: ["sales"] }); cart.clear(); router.replace({ pathname: "/checkout-success", params: { orderNumber: result.orderNumber, total: String(result.total), changeDue: String(result.changeDue), points: String(result.loyaltyPointsEarned) } }); }, onError: (error) => Alert.alert("Checkout failed", error.message) });
+  const checkout = useMutation({ mutationFn: () => portal.checkout({ items: cart.lines.map((line) => ({ productId: line.id, quantity: line.quantity, price: line.price })), customerId, paymentMethod, amountReceived: Number(received) || 0, discountTotal: 0, taxTotal: 0, clientRequestId: `mobile-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` }), onSuccess: (result) => { client.invalidateQueries({ queryKey: ["products"] }); client.invalidateQueries({ queryKey: ["inventory"] }); client.invalidateQueries({ queryKey: ["customers"] }); client.invalidateQueries({ queryKey: ["sales"] }); cart.clear(); router.replace({ pathname: "/checkout-success", params: { orderNumber: result.orderNumber, total: String(result.total), changeDue: String(result.changeDue) } }); }, onError: async (error) => { if (isRetryableOfflineError(error.message)) { await queueCheckout({ items: cart.lines.map((line) => ({ productId: line.id, quantity: line.quantity })), customerId, paymentMethod, amountReceived: Number(received) || 0, discountTotal: 0 }); cart.clear(); Alert.alert("Saved offline", "The sale is queued securely and will sync automatically when the connection returns."); router.replace("/"); return; } Alert.alert("Checkout failed", error.message); } });
   const change = Math.max((Number(received) || 0) - cart.total, 0);
   const canSubmit = cart.lines.length > 0 && (paymentMethod !== "cash" || Number(received) >= cart.total);
   const methods: PaymentMethod[] = ["cash", "card", "transfer", "other"];

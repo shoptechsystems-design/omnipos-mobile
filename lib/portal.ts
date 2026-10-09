@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import { getApiBaseUrl } from "@/constants/oauth";
+import * as Auth from "@/lib/_core/auth";
 import { numeric, type Category, type CheckoutResult, type Customer, type DashboardStats, type Expense, type InventoryItem, type Membership, type Product, type Sale, type SalesTrendPoint, type TeamMember, type Tenant, type User } from "@/shared/omnipos";
 
 export const PORTAL_ORIGIN = "https://omnipos-hjcb6uyk.manus.space";
@@ -34,6 +35,7 @@ function inputParam(input: unknown) {
 
 async function request<T>(path: string, input?: unknown, method: "GET" | "POST" = "GET") {
   const cookie = await getPortalSessionCookie();
+  const token = await Auth.getSessionToken();
   const url = `${API_BASE}/${path}${method === "GET" && input !== undefined ? `?input=${inputParam(input)}` : ""}`;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15_000);
@@ -46,6 +48,7 @@ async function request<T>(path: string, input?: unknown, method: "GET" | "POST" 
       Accept: "application/json",
       "Content-Type": "application/json",
       ...(cookie ? { Cookie: cookie } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: method === "POST" ? JSON.stringify({ json: input ?? {} }) : undefined,
       signal: controller.signal,
@@ -70,7 +73,12 @@ async function request<T>(path: string, input?: unknown, method: "GET" | "POST" 
 }
 
 async function login(input: { email: string; password: string }) {
-  if (Platform.OS !== "web") return request<{ success: true; user: User }>("auth.login", input, "POST");
+  if (Platform.OS !== "web") {
+    const result = await request<{ success: true; user: User; token?: string }>("auth.login", input, "POST");
+    if (result.token) await Auth.setSessionToken(result.token);
+    if (result.user) await Auth.setUserInfo({ id: result.user.id, openId: "", name: result.user.name ?? null, email: result.user.email ?? null, loginMethod: "local", lastSignedIn: new Date() });
+    return result;
+  }
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15_000);
   let response: Response;
@@ -154,7 +162,7 @@ export const portal = {
   inviteTeamMember: (input: { email: string; name: string; role: "cashier" | "inventory_manager" }) => request<{ success: true }>("team.invite", input, "POST"),
   tenantSettings: () => request<Record<string, unknown>>("tenant.settings"),
   updateTenantSettings: (input: { name: string; businessType: string; currency: string; taxRate: number; logoUrl?: string | null; receiptFooter?: string | null }) => request<{ success: true }>("tenant.updateSettings", input, "POST"),
-  checkout: (input: { items: Array<{ productId: number; quantity: number; price?: number }>; customerId?: number | null; paymentMethod: "cash" | "card" | "transfer" | "other"; amountReceived: number; discountTotal?: number; taxTotal?: number }) => request<CheckoutResult>("pos.checkout", { items: input.items.map(({ productId, quantity }) => ({ productId, quantity })), customerId: input.customerId, paymentMethod: input.paymentMethod, amountReceived: input.amountReceived, discount: input.discountTotal ?? 0 }, "POST"),
+  checkout: (input: { items: Array<{ productId: number; quantity: number; price?: number }>; customerId?: number | null; paymentMethod: "cash" | "card" | "transfer" | "other"; amountReceived: number; discountTotal?: number; taxTotal?: number; clientRequestId?: string }) => request<CheckoutResult>("pos.checkout", { items: input.items.map(({ productId, quantity }) => ({ productId, quantity })), customerId: input.customerId, paymentMethod: input.paymentMethod, amountReceived: input.amountReceived, discount: input.discountTotal ?? 0, clientRequestId: input.clientRequestId }, "POST"),
   sales: async (input?: { query?: string }) => {
     const rows = await request<Array<{ sale?: Record<string, unknown>; customer?: Record<string, unknown> | null }>>("pos.history", input ?? {});
     return (Array.isArray(rows) ? rows : []).map((row) => {
